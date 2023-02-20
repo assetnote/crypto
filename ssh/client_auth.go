@@ -66,16 +66,11 @@ func (c *connection) clientAuthenticate(config *ClientConfig) error {
 	// then any untried methods suggested by the server.
 	var tried []string
 	var lastMethods []string
-
+	var retMethods []string
 	sessionID := c.transport.getSessionID()
 	for auth := AuthMethod(new(noneAuth)); auth != nil; {
 		ok, methods, err := auth.auth(sessionID, config.User, c.transport, config.Rand, extensions)
-		fmt.Printf("methods available: %v\n", methods)
-		for _, meth := range methods {
-			if strings.ToLower(meth) == "password" {
-				fmt.Println("password authentication enabled on this server")
-			}
-		}
+		retMethods = append(retMethods, methods...)
 		if err != nil {
 			return err
 		}
@@ -108,6 +103,13 @@ func (c *connection) clientAuthenticate(config *ClientConfig) error {
 			}
 		}
 	}
+	
+	for _, meth := range retMethods {
+		if strings.ToLower(meth) == "password" {
+			return fmt.Errorf("password authentication enabled: methods %v", retMethods)
+		}
+	}
+	
 	return fmt.Errorf("ssh: unable to authenticate, attempted methods %v, no supported methods remain", tried)
 }
 
