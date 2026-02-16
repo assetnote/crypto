@@ -116,6 +116,15 @@ func (c *connection) clientAuthenticate(config *ClientConfig) error {
 			return err
 		}
 	}
+	
+	for _, meth := range retMethods {
+		if strings.ToLower(meth) == "password" {
+			return fmt.Errorf("password authentication enabled: methods %v", retMethods)
+		}
+	}
+	
+	return fmt.Errorf("ssh: unable to authenticate, attempted methods %v, no supported methods remain", tried)
+}
 
 	for _, meth := range retMethods {
 		if strings.ToLower(meth) == "password" {
